@@ -5,6 +5,7 @@ __lua__
 
 function _init()
  ibullets()
+ ienemies()
 end
 
 function _update()
@@ -23,7 +24,9 @@ function _draw()
   sp=17
  end
  spr(player.sprite,player.x,player.y) 
- spr(enemy.sprite,enemy.x,enemy.y)
+ for e in all(enemies) do
+ 	spr(e.sprite,e.x,e.y)
+ end
  dbullets()
 end
 -->8
@@ -110,17 +113,23 @@ end
 -->8
 --enemy--
 
-enemy={
- x=36,
- y=36,
- sprite=2,
- flipped=false,
- moving=false,
- anim={
-  timer=0,
-  frame=0
-  }
-}
+enemies={}
+
+function ienemies()
+ for i=1,5 do
+	 add(enemies,{
+		 x=rnd(20+64),
+		 y=rnd(20+64),
+		 sprite=2,
+		 flipped=false,
+		 moving=false,
+		 anim={
+		  timer=0,
+		  frame=0
+		 }
+	 })
+ end
+end
 __gfx__
 00000000000000000000000008080080000808800000080000000080000000800000000000000000000000000000000000000000000000000000000000000000
 00000000004440000033300000008008080003880088888800808008008088880000000000000000000000000000000000000000000000000000000000000000
