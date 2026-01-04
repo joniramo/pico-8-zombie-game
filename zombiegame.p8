@@ -70,15 +70,15 @@ end
 -->8
 --player--
 
-player={
+player={}
  x=8,
  y=8,
  sprite=1,
- hp=100
+ hp=100,
  flipped=false,
  moving=false,
  animation={
-  timer=0
+ timer=0
  }
 }
 
