@@ -74,6 +74,7 @@ player={
  x=8,
  y=8,
  sprite=1,
+ hp=100
  flipped=false,
  moving=false,
  animation={
@@ -131,6 +132,7 @@ function ienemies()
 		 y=rnd(20+64),
 		 sprite=2,
 		 hp=100,
+		 damage=10,
 		 flipped=false,
 		 moving=false,
 		 anim={
