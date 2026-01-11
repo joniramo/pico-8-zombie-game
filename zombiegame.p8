@@ -21,6 +21,8 @@ end
 
 function _draw()
  cls()
+ print(player.y)
+ print(player.x)
  if btnp(❎) then
   spr(0,player.x,player.y)
   sp=17
