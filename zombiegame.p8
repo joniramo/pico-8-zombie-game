@@ -146,7 +146,7 @@ function ienemies()
 	 add(enemies,{
 		 x=40+rnd(64),
 		 y=20+rnd(64),
-		 sprite=2,
+		 sprite=4,
 		 hp=100,
 		 damage=10,
 		 flipped=false,
@@ -171,7 +171,7 @@ end
 
 function die(e)
  --play death animation
- if (e.sprite<7) then
+ if (e.sprite<9) then
   e.sprite+=0.2
  else
   e.dead=true
