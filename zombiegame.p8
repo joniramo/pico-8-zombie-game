@@ -32,34 +32,10 @@ function _draw()
  else
   spr(player.sprite,player.x,player.y) 
  end
-for e in all(enemies) do 
- if (e.sprite<9) then
- e.sprite+=0.2
-else
- e.sprite=2
- end
+ for e in all(enemies) do 
  	spr(e.sprite,e.x,e.y)
  end
  dbullets()
-end
-
-function col(a,b)
- local a_top=a.y
- local a_right=a.x+7
- local a_bottom=a.y+7
- local a_left=a.x
- 
- local b_top=b.y
- local b_right=b.x+7
- local b_bottom=b.y+7
- local b_left=b.x
- 
- if a_top>b_bottom then return false end
- if b_top>a_bottom then return false end
- if a_left>b_right then return false end
- if b_left>a_right then return false end
- 
- return true 
 end
 -->8
 --bullets--
@@ -79,9 +55,8 @@ function ubullets()
    del(buls,bul)
   end
   for e in all(enemies) do
-   if col(bul,e) then
+   if not e.dead and col(bul,e) then
     --deal damage to enemy
-    print("collision!")
     del(buls,bul)
     e.hp-=dmg
     print(e.hp)
@@ -169,36 +144,72 @@ function ienemies()
  --create enemies
  for i=1,5 do
 	 add(enemies,{
-		 x=20+rnd(30+64),
-		 y=rnd(30+64),
-		 sprite=4,
+		 x=40+rnd(64),
+		 y=20+rnd(64),
+		 sprite=2,
 		 hp=100,
 		 damage=10,
 		 flipped=false,
 		 moving=false,
-		 anim={
-		  timer=0,
-		  frame=0
-		  
-		 }
+		 dead=false
 	 })
  end
 end
 
 function uenemies()
+ --update enemies
  for e in all(enemies) do
   if e.hp<=0 then
-   --kill enemy with no hp
-   del(enemies,e)
+   die(e)
   end
  end
- if(#enemies==0) then
-  --respawn new enemies
+ if all_dead() then
+  --respawn enemies
   ienemies()
  end
 end
+
+function die(e)
+ --play death animation
+ if (e.sprite<7) then
+  e.sprite+=0.2
+ else
+  e.dead=true
+ end
+end
+
+function all_dead()
+ --check if all enemies are dead
+ for e in all(enemies) do
+  if not e.dead then
+   return false
+  end
+ end
+ return true
+end
 -->8
 --map--
+-->8
+--helpers--
+
+function col(a,b)
+ local a_top=a.y
+ local a_right=a.x+7
+ local a_bottom=a.y+7
+ local a_left=a.x
+ 
+ local b_top=b.y
+ local b_right=b.x+7
+ local b_bottom=b.y+7
+ local b_left=b.x
+ 
+ if a_top>b_bottom then return false end
+ if b_top>a_bottom then return false end
+ if a_left>b_right then return false end
+ if b_left>a_right then return false end
+ 
+ return true 
+end
 __gfx__
 00000000000000000000000000000000000000000808008000080880000000800008008000088880000000000000000000000000000000000000000000000000
 00000000004440000044400000444000003330000000800808000888008080080088880800888888000000000000000000000000000000000000000000000000
