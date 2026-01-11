@@ -28,7 +28,12 @@ function _draw()
  else
   spr(player.sprite,player.x,player.y) 
  end
- for e in all(enemies) do
+for e in all(enemies) do 
+ if (e.sprite<8) then
+ e.sprite+=0.2
+else
+ e.sprite=2
+ end
  	spr(e.sprite,e.x,e.y)
  end
  dbullets()
@@ -138,6 +143,7 @@ function ienemies()
 		 anim={
 		  timer=0,
 		  frame=0
+		  
 		 }
 	 })
  end
