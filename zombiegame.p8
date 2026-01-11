@@ -14,6 +14,9 @@ function _update()
  if btnp(❎) then
   shoot()
  end
+ if(#enemies==0) then
+  ienemies() --make new enemies
+ end
  ubullets()
 end
 
@@ -158,8 +161,8 @@ enemies={}
 function ienemies()
  for i=1,5 do
 	 add(enemies,{
-		 x=rnd(20+64),
-		 y=rnd(20+64),
+		 x=20+rnd(30+64),
+		 y=rnd(30+64),
 		 sprite=2,
 		 hp=100,
 		 damage=10,
