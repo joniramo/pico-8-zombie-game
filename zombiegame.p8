@@ -14,9 +14,8 @@ function _update()
  if btnp(❎) then
   shoot()
  end
- if(#enemies==0) then
-  ienemies() --make new enemies
- end
+
+ uenemies()
  ubullets()
 end
 
@@ -63,6 +62,8 @@ end
 -->8
 --bullets--
 
+dmg=35
+
 function ibullets()
  buls={}
 end
@@ -72,12 +73,16 @@ function ubullets()
   --what does each bullet do
   bul.x+=bul.spd
   if bul.x > 128 then
+   --delete bullet off screen
    del(buls,bul)
   end
   for e in all(enemies) do
    if col(bul,e) then
+    --deal damage to enemy
+    print("collision!")
     del(buls,bul)
-    del(enemies,e)
+    e.hp-=dmg
+    print(e.hp)
    end
   end
  end
@@ -159,6 +164,7 @@ end
 enemies={}
 
 function ienemies()
+ --create enemies
  for i=1,5 do
 	 add(enemies,{
 		 x=20+rnd(30+64),
@@ -174,6 +180,19 @@ function ienemies()
 		  
 		 }
 	 })
+ end
+end
+
+function uenemies()
+ for e in all(enemies) do
+  if e.hp<=0 then
+   --kill enemy with no hp
+   del(enemies,e)
+  end
+ end
+ if(#enemies==0) then
+  --respawn new enemies
+  ienemies()
  end
 end
 -->8
