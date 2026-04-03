@@ -23,6 +23,7 @@ function _draw()
  cls()
  print(player.y)
  print(player.x)
+ print(player.dir[1])
  if btnp(❎) then
   spr(0,player.x,player.y)
   sp=17
@@ -38,6 +39,34 @@ function _draw()
  dbullets()
 end
 -->8
+--helpers--
+
+dirs={
+ {0,1}, -- down
+ {1,0}, -- right
+ {0,-1}, -- up
+ {-1,0}, -- left
+}
+
+function col(a,b)
+ local a_top=a.y
+ local a_right=a.x+7
+ local a_bottom=a.y+7
+ local a_left=a.x
+ 
+ local b_top=b.y
+ local b_right=b.x+7
+ local b_bottom=b.y+7
+ local b_left=b.x
+ 
+ if a_top>b_bottom then return false end
+ if b_top>a_bottom then return false end
+ if a_left>b_right then return false end
+ if b_left>a_right then return false end
+ 
+ return true 
+end
+-->8
 --bullets--
 
 dmg=35
@@ -49,8 +78,12 @@ end
 function ubullets()
  for bul in all(buls) do
   --what does each bullet do
-  bul.x+=bul.spd
-  if bul.x > 128 then
+  bul.x+=bul.spd*bul.dir[1]
+  bul.y+=bul.spd*bul.dir[2]
+  if bul.x < 0 and
+     bul.x > 128 and
+     bul.y < 0 and
+     bul.y > 128 then
    --delete bullet off screen
    del(buls,bul)
   end
@@ -77,6 +110,7 @@ function shoot()
  newbul = {
   x=player.x,
   y=player.y,
+  dir=player.dir,
   spd=5,
   dmg=100
  }
@@ -86,10 +120,11 @@ end
 --player--
 
 player={
+ hp=100,
  x=8,
  y=8,
+ dir=dirs[1],
  sprite=1,
- hp=100,
  flipped=false,
  moving=false,
  animation={
@@ -99,28 +134,31 @@ player={
 
 function move_player()
  player.moving=false
-
- if btn(⬅️) then
-  player.x-=1
-  player.flipped=true
+ if btn(⬇️) then
+  player.y+=1
+  player.dir=dirs[1]
   player.moving=true
-  player.sprite=2
+  player.sprite=1
  end
  if btn(➡️) then
   player.x+=1
+  player.dir=dirs[2]
   player.flipped=false
   player.moving=true
   player.sprite=2
  end
  if btn(⬆️) then
   player.y-=1
+  player.dir=dirs[3]
   player.moving=true
   player.sprite=3
  end
- if btn(⬇️) then
-  player.y+=1
+ if btn(⬅️) then
+  player.x-=1
+  player.dir=dirs[4]
+  player.flipped=true
   player.moving=true
-  player.sprite=1
+  player.sprite=2
  end
 end
 
@@ -189,27 +227,7 @@ function all_dead()
 end
 -->8
 --map--
--->8
---helpers--
 
-function col(a,b)
- local a_top=a.y
- local a_right=a.x+7
- local a_bottom=a.y+7
- local a_left=a.x
- 
- local b_top=b.y
- local b_right=b.x+7
- local b_bottom=b.y+7
- local b_left=b.x
- 
- if a_top>b_bottom then return false end
- if b_top>a_bottom then return false end
- if a_left>b_right then return false end
- if b_left>a_right then return false end
- 
- return true 
-end
 __gfx__
 00000000000000000000000000000000000000000808008000080880000000800008008000088880000000000000000000000000000000000000000000000000
 00000000004440000044400000444000003330000000800808000888008080080088880800888888000000000000000000000000000000000000000000000000
@@ -232,4 +250,3 @@ __sfx__
 000000003660022000200001f0001e0001d0001c0001b0001b0001900016000160001600016000180001600016010170301805018060180501805018050190501b0601f060250702b07030070360702e0703f070
 __music__
 00 00014344
-
