@@ -4,8 +4,8 @@ __lua__
 --game--
 
 function _init()
- ibullets()
  ienemies()
+ ibullets()
  ipups()
 end
 
@@ -24,23 +24,11 @@ end
 function _draw()
  cls()
  print(player.inv.ammo)
- if btnp(❎) then
-  spr(0,player.x,player.y)
-  sp=17
- end
- if player.flipped then
-  spr(player.sprite,player.x,player.y,1,1,true)
- else
-  spr(player.sprite,player.x,player.y) 
- end
- for e in all(enemies) do 
- 	spr(e.sprite,e.x,e.y)
- end
- for a in all(ammo) do
-  spr(a.sprite,a.x,a.y)
- end
+ 
+ dpups()
  dbullets()
  denemies()
+ dplayer()
 end
 -->8
 --helpers--
@@ -84,10 +72,10 @@ function ubullets()
   --what does each bullet do
   bul.x+=bul.spd*bul.dir[1]
   bul.y+=bul.spd*bul.dir[2]
-  if bul.x < 0 and
-     bul.x > 128 and
-     bul.y < 0 and
-     bul.y > 128 then
+  if bul.x<0 and
+     bul.x>128 and
+     bul.y<0 and
+     bul.y>128 then
    --delete bullet off screen
    del(buls,bul)
   end
@@ -102,6 +90,10 @@ function ubullets()
 end
 
 function dbullets()
+ if btnp(❎) then
+  spr(0,player.x,player.y)
+  sp=17
+ end
  for bul in all(buls) do
   --how to draw each bullet
   spr(0,bul.x,bul.y)
@@ -109,10 +101,10 @@ function dbullets()
 end
 
 function shoot()
- if player.inv.ammo > 0 then
+ if player.inv.ammo>0 then
 	 sfx(1)
 	 --what happens when we fire
-	 newbul = {
+	 newbul={
 	  x=player.x,
 	  y=player.y,
 	  dir=player.dir,
@@ -137,7 +129,7 @@ player={
  sprite=1,
  flipped=false,
  moving=false,
- animation={
+ anim={
   timer=0
  },
  inv={
@@ -153,6 +145,14 @@ function uplayer()
    player.inv.ammo+=a.value
    sfx(2)
   end
+ end
+end
+
+function dplayer()
+ if player.flipped then
+  spr(player.sprite,player.x,player.y,1,1,true)
+ else
+  spr(player.sprite,player.x,player.y) 
  end
 end
 
@@ -233,7 +233,9 @@ function uenemies()
 end
 
 function denemies()
- --draw enemies
+ for e in all(enemies) do 
+ 	spr(e.sprite,e.x,e.y)
+ end
 end
 
 function die(e)
@@ -285,6 +287,12 @@ function ipups()
 	 })
  end
 end
+
+function dpups()
+ for a in all(ammo) do
+  spr(a.sprite,a.x,a.y)
+ end
+end
 __gfx__
 00000000000000000000000000000000000000000808008000080880000000800008008000088880000000000000000000000000000000000000000000000000
 00000000004440000044400000444000003330000000800808000888008080080088880800888888000000000000000000000000000000000000000000000000
@@ -314,3 +322,4 @@ __sfx__
 000000003660022000200001f0001e0001d0001c0001b0001b0001900016000160001600016000180001600016010170301805018060180501805018050190501b0601f060250702b07030070360702e0703f070
 __music__
 00 00014344
+
