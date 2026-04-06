@@ -209,6 +209,7 @@ function ienemies()
 		 sprite=4,
 		 hp=100,
 		 damage=10,
+		 spd=0.25,
 		 flipped=false,
 		 moving=false,
 		 hit_frame=0,
@@ -221,6 +222,7 @@ end
 
 function uenemies()
  for e in all(enemies) do
+  chase_player(e)
   if e.hp<=0 and not e.dead then
    kill(e)
   end
@@ -244,12 +246,26 @@ function denemies()
  end
 end
 
+function chase_player(e)
+ --pythagorean theorem
+ local dx=player.x-e.x
+ local dy=player.y-e.y
+ local d=sqrt(dx*dx+dy*dy)
+ --normalized vectors
+ local dir_x=dx/d
+ local dir_y=dy/d
+ --chase speed variable
+ e.x+=dir_x*e.spd
+ e.y+=dir_y*e.spd
+end
+
 function kill(e)
  --play dying sound
  if e.hp<=0 and
     not e.dying then
   sfx(0)
   e.dying=true
+  e.spd=0
  end
  --play death animation
  if e.sprite<9 then
@@ -260,10 +276,10 @@ function kill(e)
   if flr(rnd(3))==1 then
    --drop ammo
    add(ammo,{
-		 x=e.x+3,
-		 y=e.y+3,
-		 value=10,
-		 sprite=17
+		  x=e.x+3,
+		  y=e.y+3,
+		  value=10,
+		  sprite=17
 	 })
   end 
  end
