@@ -73,6 +73,19 @@ function constrain_map(o)
  if o.y>edges.bottom then o.y=edges.bottom end
  if o.x>edges.right then o.x=edges.right end
 end
+
+function draw_hit(o)
+ --draw blood splatter
+ if o.hit_dir==dirs[1] then
+  spr(11,o.x,o.y-3,1,1,false,false)
+ elseif o.hit_dir==dirs[2] then
+	 spr(10,o.x-3,o.y,1,1,false)
+	elseif o.hit_dir==dirs[3] then
+	 spr(11,o.x,o.y+3,1,1,false,true)
+ elseif o.hit_dir==dirs[4] then
+	 spr(10,o.x+2,o.y,1,1,true)
+ end
+end
 -->8
 --bullets--
 
@@ -215,13 +228,13 @@ end
 --enemy--
 
 enemies={}
+enemies_on_screen=10
+dead_enemies=0
 
 function ienemies()
  --spawn enemies
- for i=1,5 do
-	 add(enemies,{
-		 x=40+rnd(64),
-		 y=20+rnd(64),
+ for i=1,enemies_on_screen/2 do
+ 	enemy={
 		 sprite=4,
 		 hp=100,
 		 damage=10,
@@ -232,7 +245,27 @@ function ienemies()
 		 hit_dir=nil,
 		 dying=false,
 		 dead=false,
-	 })
+  }
+  enemy.x=128
+  enemy.y=rnd(128)
+	 add(enemies,enemy)
+ end
+ for i=1,enemies_on_screen/2 do
+  enemy={
+		 sprite=4,
+		 hp=100,
+		 damage=10,
+		 spd=0.25,
+		 flipped=false,
+		 moving=false,
+		 hit_frame=0,
+		 hit_dir=nil,
+		 dying=false,
+		 dead=false,
+  }
+  enemy.x=rnd(128)
+  enemy.y=128
+	 add(enemies,enemy)
  end
 end
 
@@ -246,7 +279,7 @@ function uenemies()
    e.hit_frame-=1
   end
  end
- if all_dead() then
+ if most_dead() then
   --respawn enemies
   ienemies()
  end
@@ -289,6 +322,7 @@ function kill(e)
  else
   e.dying=false
   e.dead=true
+  dead_enemies+=1
   if flr(rnd(3))==1 then
    --drop ammo
    add(ammo,{
@@ -301,19 +335,6 @@ function kill(e)
  end
 end
 
-function draw_hit(e)
- --draw blood splatter
- if e.hit_dir==dirs[1] then
-  spr(11,e.x,e.y-3,1,1,false,false)
- elseif e.hit_dir==dirs[2] then
-	 spr(10,e.x-3,e.y,1,1,false)
-	elseif e.hit_dir==dirs[3] then
-	 spr(11,e.x,e.y+3,1,1,false,true)
- elseif e.hit_dir==dirs[4] then
-	 spr(10,e.x+2,e.y,1,1,true)
- end
-end
-
 function all_dead()
  --check if all enemies are dead
  for e in all(enemies) do
@@ -322,6 +343,16 @@ function all_dead()
   end
  end
  return true
+end
+
+function most_dead()
+ --check if most enemies are dead
+ if dead_enemies>enemies_on_screen/4 then
+  dead_enemies=0
+  return true
+ else
+  return false
+ end
 end
 -->8
 --powerups--
