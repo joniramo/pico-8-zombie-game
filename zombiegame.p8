@@ -37,26 +37,41 @@ dirs={
  {0,1}, -- down
  {1,0}, -- right
  {0,-1}, -- up
- {-1,0}, -- left
+ {-1,0} -- left
+}
+
+edges={
+ bottom=128-7,
+ right=128-7,
+ top=0,
+ left=0
 }
 
 function col(a,b)
+ --collision box of a
  local a_top=a.y
  local a_right=a.x+7
  local a_bottom=a.y+7
  local a_left=a.x
- 
+ --collision box of b
  local b_top=b.y
  local b_right=b.x+7
  local b_bottom=b.y+7
  local b_left=b.x
- 
+ --collision calculation
  if a_top>b_bottom then return false end
  if b_top>a_bottom then return false end
  if a_left>b_right then return false end
  if b_left>a_right then return false end
  
  return true 
+end
+
+function constrain_map(o)
+ if o.y<edges.top then o.y=edges.top end
+ if o.x<edges.left then o.x=edges.left end
+ if o.y>edges.bottom then o.y=edges.bottom end
+ if o.x>edges.right then o.x=edges.right end
 end
 -->8
 --bullets--
@@ -136,6 +151,7 @@ player={
 }
 
 function uplayer()
+ constrain_map(player)
  for a in all(ammo) do
   if col(a,player) then
    --pick up ammo
