@@ -228,12 +228,12 @@ end
 --enemy--
 
 enemies={}
-enemies_on_screen=10
-dead_enemies=0
+spawn_count=10
+kill_counter=0
 
 function ienemies()
  --spawn enemies
- for i=1,enemies_on_screen/2 do
+ for i=1,spawn_count/2 do
  	enemy={
 		 sprite=4,
 		 hp=100,
@@ -250,7 +250,7 @@ function ienemies()
   enemy.y=rnd(128)
 	 add(enemies,enemy)
  end
- for i=1,enemies_on_screen/2 do
+ for i=1,spawn_count/2 do
   enemy={
 		 sprite=4,
 		 hp=100,
@@ -322,7 +322,7 @@ function kill(e)
  else
   e.dying=false
   e.dead=true
-  dead_enemies+=1
+  kill_counter+=1
   if flr(rnd(3))==1 then
    --drop ammo
    add(ammo,{
@@ -347,8 +347,10 @@ end
 
 function most_dead()
  --check if most enemies are dead
- if dead_enemies>enemies_on_screen/4 then
-  dead_enemies=0
+ local t=spawn_count-spawn_count/4
+ --if more kills than threshold
+ if kill_counter>t then
+  kill_counter=0
   return true
  else
   return false
