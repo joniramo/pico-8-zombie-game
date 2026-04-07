@@ -89,8 +89,6 @@ end
 -->8
 --bullets--
 
-dmg=35
-
 function ibullets()
  buls={}
 end
@@ -108,13 +106,15 @@ function ubullets()
    del(buls,bul)
   end
   for e in all(enemies) do
-   if not e.dead and col(bul,e) then
+   if not e.dying and
+      not e.dead and
+      col(bul,e) then
     e.hit_frame=5
     sfx(8)
     e.hit_dir=bul.dir
     --deal damage to enemy
     del(buls,bul)
-    e.hp-=dmg
+    e.hp-=bul.dmg
    end
   end
  end
@@ -136,7 +136,7 @@ function shoot()
 	  y=player.y,
 	  dir=player.dir,
 	  spd=5,
-	  dmg=100,
+	  dmg=35,
 	 }
  	add(buls,newbul)
  	player.inv.ammo-=1
@@ -273,15 +273,19 @@ end
 function uenemies()
  for e in all(enemies) do
   chase_player(e)
-  if e.hp<=0 and not e.dead then
-   kill(e)
+  if e.hp<=0 and
+     not e.dead then
+   kill_enemy(e)
   end
-  if e.hit_frame>0 then
+  if e.hit_frame>=0 then
    e.hit_frame-=1
   end
  end
- if most_dead() then
+ if all_dead() then
   --respawn enemies
+  for e in all(enemies) do
+   del(enemies,e)
+  end
   ienemies()
  end
 end
@@ -309,13 +313,12 @@ function chase_player(e)
  e.y+=dir_y*e.spd
 end
 
-function kill(e)
+function kill_enemy(e)
  --play dying sound
- if e.hp<=0 and
-    not e.dying then
-  sfx(0)
+ if not e.dying then
   e.dying=true
   e.spd=0
+  sfx(0)
  end
  --play death animation
  if e.sprite<9 then
@@ -332,7 +335,7 @@ function kill(e)
 		  value=10,
 		  sprite=17
 	 })
-  end 
+  end
  end
 end
 
