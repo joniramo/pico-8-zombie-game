@@ -5,6 +5,7 @@ __lua__
 
 function _init()
  state="start"
+ iplayer()
  ienemies()
  ibullets()
  ipups()
@@ -14,12 +15,21 @@ function _update()
  if state=="start" then
   if (btnp(❎)) state="game"
  elseif state=="game" then
+  if player.hp<=0 then
+   state="gameover"
+  end
+ 
 	 player_move()
   player_shoot()	 
 	
 	 uplayer()
 	 uenemies()
-	 ubullets() 
+	 ubullets()
+	elseif state=="gameover" then
+	 if btnp(❎) then
+	  _init()
+	  state="game"
+	 end
  end
 end
 
@@ -39,6 +49,12 @@ function _draw()
 	 dpups()
 	 dplayer()
 	 dmenus()
+	elseif state=="gameover" then
+	 cls(0)
+  print("game over",45,50,8)
+  print("your brains were eaten...",15,60,7)
+  print("press ❎ to try again",15,70,7)
+
  end
 end
 -->8
@@ -58,22 +74,23 @@ edges={
  left=0
 }
 
+function get_bounding_box(o)
+ return {
+  top=o.y,
+  right=o.x+7,
+  bottom=o.y+7,
+  left=o.x
+ }
+end
+
 function col(a,b)
- --collision box of a
- local a_top=a.y
- local a_right=a.x+7
- local a_bottom=a.y+7
- local a_left=a.x
- --collision box of b
- local b_top=b.y
- local b_right=b.x+7
- local b_bottom=b.y+7
- local b_left=b.x
+ local a_bb=get_bounding_box(a)
+ local b_bb=get_bounding_box(b)
  --collision calculation
- if a_top>b_bottom then return false end
- if b_top>a_bottom then return false end
- if a_left>b_right then return false end
- if b_left>a_right then return false end
+ if (a_bb.top>b_bb.bottom) return false
+ if (b_bb.top>a_bb.bottom) return false
+ if (a_bb.left>b_bb.right) return false
+ if (b_bb.left>a_bb.right) return false
  
  return true 
 end
@@ -151,7 +168,7 @@ function player_shoot()
 		  y=player.y,
 		  dir=player.dir,
 		  spd=5,
-		  dmg=35,
+		  dmg=25,
 		 }
 	 	add(buls,newbul)
 	 	player.inv.ammo-=1
@@ -161,21 +178,25 @@ end
 -->8
 --player--
 
-player={
- hp=100,
- x=8,
- y=8,
- dir=dirs[1],
- sprite=1,
- flipped=false,
- moving=false,
- anim={
-  timer=0
- },
- inv={
-  ammo=10
- }
-}
+function iplayer()
+	player={
+	 hp=100,
+	 x=8,
+	 y=8,
+	 dir=dirs[1],
+	 sprite=1,
+	 flipped=false,
+	 moving=false,
+	 hit_frame=0,
+	 invul_frame=0,
+	 anim={
+	  timer=0
+	 },
+	 inv={
+	  ammo=10
+	 }
+	}
+end
 
 function uplayer()
  constrain_map(player)
@@ -187,6 +208,12 @@ function uplayer()
    sfx(2)
   end
  end
+ if player.hit_frame>0 then
+   player.hit_frame-=1
+ end
+ if player.invul_frame>0 then
+  player.invul_frame-=1
+ end
 end
 
 function dplayer()
@@ -194,6 +221,9 @@ function dplayer()
   spr(player.sprite,player.x,player.y,1,1,true)
  else
   spr(player.sprite,player.x,player.y) 
+ end
+ if player.hit_frame>0 then
+  spr(33,player.x,player.y)
  end
 end
 
@@ -230,9 +260,9 @@ end
 function player_animate()
  if player.moving then
   player.anim.timer+=1
-  if player.anim.timer>5 then  -- this value determines animation speed
+  if player.anim.timer>5 then --this value determines animation speed
    player.anim.timer=0
-   player.sprite=(player.sprite+1)%2  -- alternate between 0 and 1
+   player.sprite=(player.sprite+1)%2 --alternate between 0 and 1
   end
  else
   player.anim.frame=player.sprite --resets to idle sprite when not moving
@@ -241,17 +271,16 @@ end
 -->8
 --enemy--
 
-enemies={}
-spawn_count=10
-kill_counter=0
-
 function ienemies()
+	enemies={}
+	spawn_count=10
+	kill_counter=0
  --spawn enemies
  for i=1,spawn_count/2 do
  	enemy={
 		 sprite=4,
 		 hp=100,
-		 damage=10,
+		 dmg=25,
 		 spd=0.25,
 		 flipped=false,
 		 moving=false,
@@ -259,6 +288,7 @@ function ienemies()
 		 hit_dir=nil,
 		 dying=false,
 		 dead=false,
+		 despawn_frame=48
   }
   enemy.x=128
   enemy.y=8+rnd(120)
@@ -268,7 +298,7 @@ function ienemies()
   enemy={
 		 sprite=4,
 		 hp=100,
-		 damage=10,
+		 dmg=25,
 		 spd=0.25,
 		 flipped=false,
 		 moving=false,
@@ -276,6 +306,7 @@ function ienemies()
 		 hit_dir=nil,
 		 dying=false,
 		 dead=false,
+		 despawn_frame=48
   }
   enemy.x=rnd(128)
   enemy.y=128
@@ -293,12 +324,19 @@ function uenemies()
   if e.hit_frame>=0 then
    e.hit_frame-=1
   end
+  if not e.dying and
+    not e.dead then
+  damage_player(e)  
+  end
+  if e.dead then
+   e.despawn_frame-=1
+  end
+  if e.despawn_frame==0 then
+   del(enemies,e)
+  end
  end
  if all_dead() then
   --respawn enemies
-  for e in all(enemies) do
-   del(enemies,e)
-  end
   ienemies()
  end
 end
@@ -324,6 +362,16 @@ function chase_player(e)
  --chase speed variable
  e.x+=dir_x*e.spd
  e.y+=dir_y*e.spd
+end
+
+function damage_player(e)
+  if col(player,e) and
+    player.invul_frame==0 then
+  player.hp-=e.dmg
+  player.hit_frame=5
+  player.invul_frame=48
+  sfx(9)
+ end
 end
 
 function kill_enemy(e)
@@ -376,9 +424,10 @@ end
 -->8
 --powerups--
 
-ammo={}
+
 
 function ipups()
+ ammo={}
  --spawn powerups
  for i=1,2 do
 	 add(ammo,{
@@ -399,15 +448,35 @@ end
 --menus--
 
 function dmenus()
+ draw_hud()
  draw_ammo_count()
+ draw_health_bar()
+end
+
+function draw_hud()
+ rectfill(60,10,128,0,1)
 end
 
 function draw_ammo_count()
  --draw ammo count
- rectfill(100,10,128,0,1)
- spr(18,102,1)
- print(player.inv.ammo,116,3,10)
+ spr(18,107,1)
+ print(player.inv.ammo,118,3,10)
 end
+
+function draw_health_bar()
+ local x=71
+ local y=3
+ local bar_w=30
+ local bar_h=4
+ local fill=flr(bar_w*(player.hp/100))
+
+ spr(19,62,1)
+ --bar background
+ rectfill(x,y,x+bar_w,y+bar_h,8)
+ --bar health fill
+ rectfill(x,y,x+fill,y+bar_h,11)
+end
+
 __gfx__
 00000000000000000000000000000000000000000808008000080880000000800008008000088880000000000080000000000088000000880000000000000000
 00000000004440000044400000444000003330000000800808000888008080080088880800888888000000000000080000080800000808000000000000000000
@@ -419,11 +488,18 @@ __gfx__
 00000000000000000000000000000000000000000000000000000800000800880008008808880880000000000000000000080080000808800000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000007777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000065c77000a0a0a0007787700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000006cccc000909090007888700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000009caca000909090007787700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000909000000000007777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000065c77000a0a0a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000006cccc000909090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0000000009caca000909090000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000909000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000080080080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000080008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
 0808080801010101010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -437,6 +513,7 @@ __sfx__
 000000003660022000200001f0001e0001d0001c0001b0001b0001900016000160001600016000180001600016010170301805018060180501805018050190501b0601f060250702b07030070360702e0703f070
 000500000e0500e0500e0500e0500e0500e0500e0500f0500f05010050100501105011050110501105012050120501205012050120501305015050160501c0501e0501f0502005021050230502a0502805027050
 000200000d15006170041300325002160081700a1500a1400b2000a2000920009200082000720007200072000720007200072000720007200062000620005200042000320002200022000c1000b1000000000000
+00010000000001c4501d4501e4501e4501e4501e4501e4501d4501d4501c4501b450184500f4500c4500c4500b4500b4500b4500b4500a4500945008450034500245000000000000000000000000000000000000
 __music__
 00 00014344
 
