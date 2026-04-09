@@ -4,31 +4,42 @@ __lua__
 --game--
 
 function _init()
+ state="start"
  ienemies()
  ibullets()
  ipups()
 end
 
 function _update()
- move_player()
- 
- if btnp(❎) then
-  shoot()
+ if state=="start" then
+  if (btnp(❎)) state="game"
+ elseif state=="game" then
+	 player_move()
+  player_shoot()	 
+	
+	 uplayer()
+	 uenemies()
+	 ubullets() 
  end
-
- uplayer()
- uenemies()
- ubullets()
 end
 
 function _draw()
- cls()
- print(player.inv.ammo)
- 
- dbullets()
- denemies()
- dpups()
- dplayer()
+ print(state)
+ if state=="start" then
+  cls(2)
+  print("zombies are coming",25,50)
+  print("to eat your brains!",25,60)
+  print("press ❎ to survive",25,70)
+ elseif state=="game" then
+  cls(5)
+  map()
+	 print(player.inv.ammo)
+	 
+	 dbullets()
+	 denemies()
+	 dpups()
+	 dplayer()
+ end
 end
 -->8
 --helpers--
@@ -110,8 +121,8 @@ function ubullets()
       not e.dead and
       col(bul,e) then
     e.hit_frame=5
-    sfx(8)
     e.hit_dir=bul.dir
+    sfx(8)
     --deal damage to enemy
     del(buls,bul)
     e.hp-=bul.dmg
@@ -127,22 +138,24 @@ function dbullets()
  end
 end
 
-function shoot()
- if player.inv.ammo>0 then
-	 sfx(1)
-	 --fire bullet
-	 newbul={
-	  x=player.x,
-	  y=player.y,
-	  dir=player.dir,
-	  spd=5,
-	  dmg=35,
-	 }
- 	add(buls,newbul)
- 	player.inv.ammo-=1
- else
- 	--play click sound
- 	sfx(4)
+function player_shoot()
+ if btnp(❎) then
+  --play click sound
+  if player.inv.ammo<=0 then
+   sfx(4)
+  --fire bullet
+  else
+   sfx(1)
+		 newbul={
+		  x=player.x,
+		  y=player.y,
+		  dir=player.dir,
+		  spd=5,
+		  dmg=35,
+		 }
+	 	add(buls,newbul)
+	 	player.inv.ammo-=1
+	 end
  end
 end
 -->8
@@ -184,7 +197,7 @@ function dplayer()
  end
 end
 
-function move_player()
+function player_move()
  player.moving=false
  if btn(⬇️) then
   player.y+=1
@@ -214,7 +227,7 @@ function move_player()
  end
 end
 
-function animate_player()
+function player_animate()
  if player.moving then
   player.anim.timer+=1
   if player.anim.timer>5 then  -- this value determines animation speed
@@ -402,7 +415,7 @@ __gff__
 0808080801010101010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-00030000001500115001150021500415006150091500a1500a1500615004150031500215002150021500215002150031500515007150071500615004150021500015000150001500015000150011500115001150
+00040000001500115001150021500415006150091500a1500a1500615004150031500215002150021500215002150031500515007150071500615004150021500015000150001500015000150011500115001150
 00010000256602464023630216401e6401c64019620171301513013730112400f1400d6400d2300c1200a21009620091200611005630047100413004110027300211003130021100111002710011100171000110
 0000000004316221062010622065230543cb07240561ab2510a2412a2312a4213a5213a6113a5113a4118a5113a523fa7213a7313a522aa5224b522d0622ca7230a1324a2324a223da323da532f0733ea573a167
 001000200000015170111700a17004170000000417000000051700000000000041700000000000041700000004170001700617007170041700000005170001700000006170041700000000160061700917011170
